@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#sudo bash -c "$(curl -s https://examples.carre-project.eu/letsencrypt/carre_certificates)"
+
+#check for apache2 service
+if service --status-all | grep -Fq 'apache2'; then 
+    echo "Apache2 service found! "
+else 
+    echo "Apache2 service not running! , you cannot use this script"
+    exit 1    
+fi
+EMAIL=carre@med.duth.gr
+# echo "Enter email address (this is used for the registration process and/or notifications) : "
+# while [[ $EMAIL = "" ]]; do
+#   read EMAIL
+# done
+
+subdomain=
+echo "Enter CARRE subdomain (e.g visual, which is already configured as apache VHOST) : "
+while [[ $subdomain = "" ]]; do
+   read subdomain
+done
+
+# install dependencies
+sudo apt-get install git-core
+
+
+cd /
+#check carre_ssl directory
+if [ -d "/carre_ssl" ]
+then 
+    cd carre_ssl
+else 
+    mkdir carre_ssl
+    cd carre_ssl
+fi
+
+#check letsencrypt directory
+if [ -d "/carre_ssl/letsencrypt" ]
+then 
+    cd letsencrypt
+    git pull
+else 
+    git clone https://github.com/letsencrypt/letsencrypt
+    cd letsencrypt
+fi
+./letsencrypt-auto --apache --email $EMAIL --agree-tos -d ${subdomain/.carre-project.eu/}.carre-project.eu
+
+# add to crontab
+while true; do
+    read -p "Do you wish to install auto renew cron job for letsencrypt? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "Installing root cron job"; sudo sh -c 'echo "0 0 * * 0 root /carre_ssl/letsencrypt-auto renew" > /etc/cron.d/carre_ssl_cron'; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
