@@ -50,7 +50,7 @@ fi
 while true; do
     read -p "Do you wish to install auto renew cron job for letsencrypt? (y/n)" yn
     case $yn in
-        [Yy]* ) echo "Installing root cron job"; sudo sh -c 'echo "0 0 * * 0 root /carre_ssl/letsencrypt-auto renew" > /etc/cron.d/carre_ssl_cron'; break;;
+        [Yy]* ) echo "Installing root cron job"; sudo sh -c 'echo "	0 0 8 1/1 * ? * root /carre_ssl/letsencrypt-auto renew" > /etc/cron.d/carre_ssl_cron'; break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
     esac
